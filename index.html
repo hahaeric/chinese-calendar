@@ -14,13 +14,18 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
                  "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
-    background: #f0f2f5;
+    background:
+      linear-gradient(180deg, rgba(62, 140, 200, 0.25) 0%, rgba(30, 80, 140, 0.45) 100%),
+      url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=2560&q=85') center/cover no-repeat fixed;
     color: #1a1a2e;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     padding: 40px 16px;
+    position: relative;
+    overflow-x: hidden;
+    background-color: #4a80b8;
   }
 
   .calendar {
@@ -30,6 +35,8 @@
     border-radius: 16px;
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+    position: relative;
+    z-index: 1;
   }
 
   /* ── Header ── */
@@ -107,23 +114,38 @@
     background: #fafbfc;
   }
 
-  .search-input {
-    flex: 1;
+  .sel-date {
     height: 38px;
-    padding: 0 14px;
+    padding: 0 8px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-family: inherit;
     font-size: 14px;
     color: #1a1a2e;
     outline: none;
+    background: #fff;
+    cursor: pointer;
     transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E\");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 26px;
   }
-  .search-input:focus {
+  .sel-date:focus {
     border-color: #4a6cf7;
     box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.12);
   }
-  .search-input::placeholder { color: #aaa; }
+  #selYear  { width: 80px; }
+  #selMonth { width: 64px; }
+  #selDay   { width: 64px; }
+
+  .sel-label {
+    font-size: 13px;
+    color: #888;
+    user-select: none;
+  }
 
   .btn-search {
     height: 38px;
@@ -165,6 +187,35 @@
     box-shadow: 0 1px 4px rgba(139, 105, 20, 0.06);
   }
 
+  .era-item.clickable {
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+
+  .era-item.clickable:hover {
+    border-color: #4a6cf7;
+    box-shadow: 0 2px 12px rgba(74, 108, 247, 0.15);
+  }
+
+  .era-item.clickable::after {
+    content: '▾';
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    font-size: 12px;
+    color: #bbb;
+    transition: transform 0.2s, color 0.15s;
+  }
+
+  .era-item.clickable:hover::after {
+    color: #4a6cf7;
+  }
+
+  .era-item.clickable.open::after {
+    transform: rotate(180deg);
+  }
+
   .era-label {
     font-size: 14px;
     font-weight: 500;
@@ -179,6 +230,311 @@
     color: #8b6914;
     letter-spacing: 1.5px;
     line-height: 1.2;
+  }
+
+  /* ── 甲子面板 ── */
+  .jiazi-panel {
+    padding: 14px 28px 18px;
+    border-bottom: 1px solid #eee;
+    background: #f0f4fb;
+  }
+
+  .jiazi-header {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d5aa0;
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .jiazi-header span {
+    color: #4a6cf7;
+  }
+
+  .jiazi-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+  }
+
+  .jiazi-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    padding: 4px 2px 5px;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #e8ecf1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.12s;
+    user-select: none;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .jiazi-cell:hover {
+    background: #e0eaff;
+    border-color: #b8c8f0;
+    transform: scale(1.08);
+  }
+
+  .jiazi-zodiac {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .jiazi-text {
+    font-size: 11px;
+    font-weight: 500;
+    color: #555;
+    line-height: 1.1;
+  }
+
+  .jiazi-cell.current {
+    background: #4a6cf7;
+    border-color: #4a6cf7;
+    box-shadow: 0 2px 8px rgba(74, 108, 247, 0.35);
+  }
+
+  .jiazi-cell.current .jiazi-text {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .jiazi-cell.current:hover {
+    background: #3d5de0;
+  }
+
+  /* ── Weather section ── */
+  .calendar-weather {
+    padding: 18px 28px;
+    border-bottom: 1px solid #eee;
+    background: #f5f9ff;
+  }
+
+  .weather-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px 0;
+    font-size: 14px;
+    color: #888;
+  }
+
+  .weather-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #dce3ff;
+    border-top-color: #4a6cf7;
+    border-radius: 50%;
+    animation: weatherSpin 0.8s linear infinite;
+  }
+
+  @keyframes weatherSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  .weather-error {
+    display: none;
+    padding: 16px;
+    text-align: center;
+    font-size: 14px;
+    color: #e05a5a;
+    background: #fff5f5;
+    border-radius: 10px;
+    border: 1px solid #fdd;
+  }
+
+  .weather-location {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a6cf7;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .weather-now {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #dce8f8;
+    box-shadow: 0 1px 4px rgba(74, 108, 247, 0.06);
+    margin-bottom: 14px;
+  }
+
+  .weather-now-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .weather-icon-large {
+    font-size: 52px;
+    line-height: 1;
+  }
+
+  .weather-temp-block {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .weather-temp {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.1;
+  }
+
+  .weather-feels {
+    font-size: 12px;
+    color: #999;
+    margin-top: 2px;
+  }
+
+  .weather-now-right {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: auto;
+    min-width: 0;
+  }
+
+  .weather-desc {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2d5aa0;
+  }
+
+  .weather-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+
+  .weather-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  .weather-meta-item .meta-icon {
+    font-size: 15px;
+  }
+
+  .weather-meta-item .meta-label {
+    color: #aaa;
+  }
+
+  .weather-meta-item .meta-value {
+    font-weight: 500;
+    color: #555;
+  }
+
+  .weather-forecast-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: #999;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .weather-forecast-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #dce3ff transparent;
+  }
+
+  .weather-forecast-scroll::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .weather-forecast-scroll::-webkit-scrollbar-thumb {
+    background: #dce3ff;
+    border-radius: 10px;
+  }
+
+  .forecast-day {
+    flex: 0 0 auto;
+    width: 92px;
+    text-align: center;
+    padding: 10px 6px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #eef4fc;
+    scroll-snap-align: start;
+    transition: background 0.15s;
+  }
+
+  .forecast-day:hover {
+    background: #f0f6ff;
+  }
+
+  .forecast-day.today-forecast {
+    border-color: #4a6cf7;
+    background: #eef3ff;
+  }
+
+  .forecast-date {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+  }
+
+  .forecast-day.today-forecast .forecast-date {
+    color: #4a6cf7;
+  }
+
+  .forecast-icon {
+    font-size: 26px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .forecast-temp-high {
+    font-size: 14px;
+    font-weight: 600;
+    color: #c44;
+    line-height: 1.3;
+  }
+
+  .forecast-temp-low {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.3;
+  }
+
+  .forecast-temp-divider {
+    margin: 0 2px;
+    color: #ccc;
+  }
+
+  .forecast-desc {
+    font-size: 10px;
+    color: #999;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.3;
   }
 
   /* ── Weekday row ── */
@@ -348,8 +704,12 @@
     .era-value { font-size: 22px; letter-spacing: 1px; }
     .btn-icon { width: 34px; height: 34px; font-size: 16px; }
     .btn-today { height: 34px; padding: 0 14px; font-size: 14px; }
-    .calendar-search { padding: 10px 16px; gap: 6px; }
-    .search-input { height: 34px; font-size: 13px; padding: 0 10px; }
+    .calendar-search { padding: 10px 16px; gap: 4px; }
+    .sel-date { height: 34px; font-size: 13px; padding: 0 6px; padding-right: 22px; background-position: right 4px center; }
+    #selYear { width: 68px; }
+    #selMonth { width: 52px; }
+    #selDay { width: 52px; }
+    .sel-label { font-size: 11px; }
     .btn-search { height: 34px; padding: 0 12px; font-size: 13px; }
     .search-hint { padding: 0 16px 8px; font-size: 11px; }
     .day-term { font-size: 8px; }
@@ -360,6 +720,28 @@
     .calendar-grid { padding: 4px 6px 12px; gap: 1px; }
     .day-cell { font-size: 14px; border-radius: 8px; min-height: 82px; padding: 4px 1px 3px; }
     .day-num { font-size: 14px; }
+
+    /* Weather responsive */
+    .calendar-weather { padding: 14px 16px; }
+    .weather-now { padding: 12px 14px; gap: 12px; }
+    .weather-icon-large { font-size: 40px; }
+    .weather-temp { font-size: 28px; }
+    .weather-desc { font-size: 15px; }
+    .weather-meta { gap: 4px 10px; }
+    .weather-meta-item { font-size: 11px; }
+    .forecast-day { width: 76px; padding: 8px 4px; }
+    .forecast-icon { font-size: 22px; }
+    .forecast-temp-high { font-size: 12px; }
+    .forecast-temp-low { font-size: 11px; }
+    .weather-loading { padding: 16px 0; font-size: 13px; }
+
+    /* Jiazi responsive */
+    .jiazi-panel { padding: 10px 12px 14px; }
+    .jiazi-header { font-size: 13px; margin-bottom: 8px; }
+    .jiazi-grid { gap: 2px; }
+    .jiazi-cell { padding: 2px 1px 3px; border-radius: 4px; }
+    .jiazi-zodiac { font-size: 14px; }
+    .jiazi-text { font-size: 9px; }
   }
 </style>
 </head>
@@ -382,12 +764,15 @@
     </div>
   </div>
 
-  <!-- Date search -->
+  <!-- Date selector -->
   <div class="calendar-search">
-    <input class="search-input" id="searchInput" type="text"
-           placeholder="搜索日期，如 2026-06-01、2026年6月1日、6月1日"
-           onkeydown="if(event.key==='Enter')searchDate()">
-    <button class="btn btn-search" onclick="searchDate()">跳转</button>
+    <select class="sel-date" id="selYear"></select>
+    <span class="sel-label">年</span>
+    <select class="sel-date" id="selMonth"></select>
+    <span class="sel-label">月</span>
+    <select class="sel-date" id="selDay"></select>
+    <span class="sel-label">日</span>
+    <button class="btn btn-search" onclick="jumpToDate()">跳转</button>
   </div>
   <div class="search-hint" id="searchHint"></div>
 
@@ -397,9 +782,45 @@
       <div class="era-label">黄帝纪年</div>
       <div class="era-value" id="huangdiYear"></div>
     </div>
-    <div class="era-item">
-      <div class="era-label">天干地支</div>
+    <div class="era-item clickable" id="eraGanZhi" onclick="toggleJiaziPanel()">
+      <div class="era-label">天干地支 ▾</div>
       <div class="era-value" id="ganZhiYear"></div>
+    </div>
+  </div>
+
+  <!-- 甲子面板 -->
+  <div class="jiazi-panel" id="jiaziPanel" style="display:none;">
+    <div class="jiazi-header">
+      一甲子 · 第 <span id="jiaziPos">1</span> / 60 位 · <span id="jiaziName"></span>年
+    </div>
+    <div class="jiazi-grid" id="jiaziGrid"></div>
+  </div>
+
+  <!-- Weather -->
+  <div class="calendar-weather" id="weatherSection">
+    <div class="weather-loading" id="weatherLoading">
+      <span class="weather-loading-spinner"></span> 加载天气数据...
+    </div>
+    <div class="weather-error" id="weatherError"></div>
+    <div class="weather-content" id="weatherContent" style="display:none;">
+      <div class="weather-location" id="weatherLocation"></div>
+      <div class="weather-now">
+        <div class="weather-now-left">
+          <span class="weather-icon-large" id="weatherIconLarge"></span>
+          <div class="weather-temp-block">
+            <span class="weather-temp" id="weatherTemp"></span>
+            <span class="weather-feels" id="weatherFeels"></span>
+          </div>
+        </div>
+        <div class="weather-now-right">
+          <span class="weather-desc" id="weatherDesc"></span>
+          <div class="weather-meta" id="weatherMeta"></div>
+        </div>
+      </div>
+      <div class="weather-forecast">
+        <div class="weather-forecast-header">七日预报</div>
+        <div class="weather-forecast-scroll" id="weatherForecast"></div>
+      </div>
     </div>
   </div>
 
@@ -431,9 +852,76 @@ const SOLAR_TERM_INFO = [
 
 const HEAVENLY_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
 const EARTHLY_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+const ZODIAC_EMOJI = { '子':'🐭', '丑':'🐮', '寅':'🐯', '卯':'🐰', '辰':'🐲', '巳':'🐍', '午':'🐴', '未':'🐑', '申':'🐵', '酉':'🐔', '戌':'🐶', '亥':'🐷' };
+const ZODIAC_NAMES = { '子':'鼠', '丑':'牛', '寅':'虎', '卯':'兔', '辰':'龙', '巳':'蛇', '午':'马', '未':'羊', '申':'猴', '酉':'鸡', '戌':'狗', '亥':'猪' };
+
+// 生成六十甲子列表
+var JIAZI_CYCLE = [];
+(function() {
+  var s = 0, b = 0;
+  for (var i = 0; i < 60; i++) {
+    JIAZI_CYCLE.push(HEAVENLY_STEMS[s] + EARTHLY_BRANCHES[b]);
+    s = (s + 1) % 10;
+    b = (b + 1) % 12;
+  }
+})();
 
 // 黄帝纪年：公元纪年 + 2697（通用换算）
 const HUANGDI_ERA_OFFSET = 2697;
+
+// ── 天气码映射（wttr.in WWO 天气码） ──
+const WEATHER_CODE_MAP = {
+  113: { emoji: '☀️', desc: '晴' },
+  116: { emoji: '⛅', desc: '晴间多云' },
+  119: { emoji: '☁️', desc: '多云' },
+  122: { emoji: '☁️', desc: '阴' },
+  143: { emoji: '🌫️', desc: '薄雾' },
+  248: { emoji: '🌫️', desc: '雾' },
+  260: { emoji: '🌫️', desc: '冻雾' },
+  176: { emoji: '🌦️', desc: '局部阵雨' },
+  182: { emoji: '🌨️', desc: '局部雨夹雪' },
+  185: { emoji: '🌨️', desc: '局部冻毛毛雨' },
+  200: { emoji: '⛈️', desc: '局部雷暴' },
+  227: { emoji: '🌬️', desc: '吹雪' },
+  230: { emoji: '🌨️', desc: '暴风雪' },
+  263: { emoji: '🌧️', desc: '小雨' },
+  266: { emoji: '🌧️', desc: '小到中雨' },
+  281: { emoji: '🌧️', desc: '冻毛毛雨' },
+  284: { emoji: '🌧️', desc: '强冻毛毛雨' },
+  293: { emoji: '🌦️', desc: '小阵雨' },
+  296: { emoji: '🌧️', desc: '小雨' },
+  299: { emoji: '🌧️', desc: '中雨' },
+  302: { emoji: '🌧️', desc: '中雨' },
+  305: { emoji: '🌧️', desc: '大雨' },
+  308: { emoji: '🌧️', desc: '大雨' },
+  311: { emoji: '🌧️', desc: '冻雨' },
+  314: { emoji: '🌧️', desc: '强冻雨' },
+  317: { emoji: '🌨️', desc: '冰粒' },
+  320: { emoji: '🌨️', desc: '冰粒' },
+  323: { emoji: '🌨️', desc: '阵雪' },
+  326: { emoji: '🌨️', desc: '小雪' },
+  329: { emoji: '🌨️', desc: '中雪' },
+  332: { emoji: '🌨️', desc: '中雪' },
+  335: { emoji: '🌨️', desc: '大雪' },
+  338: { emoji: '🌨️', desc: '大雪' },
+  350: { emoji: '🌨️', desc: '冰粒' },
+  353: { emoji: '🌦️', desc: '阵雨' },
+  356: { emoji: '🌧️', desc: '强阵雨' },
+  359: { emoji: '🌧️', desc: '暴雨' },
+  362: { emoji: '🌨️', desc: '冰粒阵雨' },
+  365: { emoji: '🌨️', desc: '冰粒阵雨' },
+  368: { emoji: '🌨️', desc: '阵雪' },
+  371: { emoji: '🌨️', desc: '阵雪' },
+  374: { emoji: '🌨️', desc: '冰粒阵雨' },
+  377: { emoji: '🌨️', desc: '冰粒阵雨' },
+  386: { emoji: '⛈️', desc: '雷阵雨' },
+  389: { emoji: '⛈️', desc: '大雷雨' },
+  392: { emoji: '⛈️', desc: '雷阵雪' },
+  395: { emoji: '⛈️', desc: '大雷雪' },
+};
+const WEATHER_DEFAULT = { emoji: '🌤️', desc: '未知' };
+const WEATHER_CACHE_KEY = 'cal_weather';
+const WEATHER_CACHE_TTL = 30 * 60 * 1000;
 
 let state = {
   year: 0,
@@ -448,8 +936,10 @@ const el = {
   weekdays: document.getElementById('weekdays'),
   grid:   document.getElementById('grid'),
   footer: document.getElementById('footer'),
-  searchInput: document.getElementById('searchInput'),
-  searchHint:  document.getElementById('searchHint'),
+  selYear:  document.getElementById('selYear'),
+  selMonth: document.getElementById('selMonth'),
+  selDay:   document.getElementById('selDay'),
+  searchHint: document.getElementById('searchHint'),
 };
 
 // ── helpers ──
@@ -513,7 +1003,7 @@ const LUNAR_INFO = [
   0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,0x0a2e0,0x0d2e3,
   0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,0x052d0,0x0a9b8,
   0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,0x0b273,0x06930,
-  0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,0x0e968,0x0d520,
+  0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a576,0x0ab50,0x0d160,0x0e968,0x0d520,
   0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,0x0d520,
 ];
 
@@ -711,6 +1201,170 @@ function buildDayCellHtml(y, m, d, extraClass, termMap) {
     `<span class="day-num">${d}</span>${lunarHtml}${termHtml}${houHtml}${descHtml}</div>`;
 }
 
+// ── 天气 ──
+
+var _weatherLoading = false;
+
+function getWeatherInfo(code) {
+  return WEATHER_CODE_MAP[code] || WEATHER_DEFAULT;
+}
+
+function showWeatherError(msg) {
+  document.getElementById('weatherError').textContent = msg;
+  document.getElementById('weatherError').style.display = 'block';
+  document.getElementById('weatherLoading').style.display = 'none';
+  document.getElementById('weatherContent').style.display = 'none';
+  _weatherLoading = false;
+}
+
+function showWeatherLoading() {
+  if (_weatherLoading) return;
+  _weatherLoading = true;
+  document.getElementById('weatherLoading').style.display = 'flex';
+  document.getElementById('weatherError').style.display = 'none';
+  document.getElementById('weatherContent').style.display = 'none';
+}
+
+function showWeatherContent() {
+  document.getElementById('weatherLoading').style.display = 'none';
+  document.getElementById('weatherError').style.display = 'none';
+  document.getElementById('weatherContent').style.display = 'block';
+  _weatherLoading = false;
+}
+
+function getCachedWeather() {
+  try {
+    var raw = localStorage.getItem(WEATHER_CACHE_KEY);
+    if (!raw) return null;
+    var c = JSON.parse(raw);
+    if (Date.now() - c.t < WEATHER_CACHE_TTL) return c.d;
+  } catch (e) { /* ignore */ }
+  return null;
+}
+
+function setCachedWeather(data) {
+  try {
+    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ t: Date.now(), d: data }));
+  } catch (e) { /* ignore */ }
+}
+
+function getUserCoords() {
+  return new Promise(function(resolve) {
+    if (!navigator.geolocation) {
+      resolve({ lat: '43.88', lon: '125.35', name: '长春' });
+      return;
+    }
+    var done = false;
+    var t = setTimeout(function() {
+      if (!done) { done = true; resolve({ lat: '43.88', lon: '125.35', name: '长春' }); }
+    }, 5000);
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        if (!done) { done = true; clearTimeout(t); resolve({ lat: pos.coords.latitude.toFixed(2), lon: pos.coords.longitude.toFixed(2), name: '当前位置' }); }
+      },
+      function() {
+        if (!done) { done = true; clearTimeout(t); resolve({ lat: '43.88', lon: '125.35', name: '长春' }); }
+      },
+      { timeout: 5000, maximumAge: 600000 }
+    );
+  });
+}
+
+function fetchWeatherData(coords) {
+  var cached = getCachedWeather();
+  if (cached) return Promise.resolve(cached);
+
+  var url = 'https://wttr.in/' + coords.lat + ',' + coords.lon + '?format=j1';
+  var ctrl = new AbortController();
+  var tid = setTimeout(function() { ctrl.abort(); }, 10000);
+
+  return fetch(url, { signal: ctrl.signal })
+    .then(function(resp) {
+      clearTimeout(tid);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function(data) {
+      setCachedWeather(data);
+      return data;
+    })
+    .catch(function(e) {
+      clearTimeout(tid);
+      throw e;
+    });
+}
+
+function renderWeatherNow(data, locationName) {
+  var cur = (data.current_condition && data.current_condition[0]);
+  if (!cur) return;
+
+  var code = parseInt(cur.weatherCode) || 113;
+  var info = getWeatherInfo(code);
+
+  document.getElementById('weatherIconLarge').textContent = info.emoji;
+  document.getElementById('weatherTemp').textContent = cur.temp_C + '°C';
+  document.getElementById('weatherFeels').textContent = '体感 ' + cur.FeelsLikeC + '°C';
+  document.getElementById('weatherDesc').textContent = info.desc;
+  document.getElementById('weatherLocation').innerHTML = '📍 ' + locationName;
+
+  var metaItems = [
+    { icon: '💧', label: '湿度', value: cur.humidity + '%' },
+    { icon: '💨', label: '风', value: cur.winddir16Point + ' ' + cur.windspeedKmph + 'km/h' },
+    { icon: '☀️', label: '紫外线', value: cur.uvIndex },
+  ];
+
+  var metaHtml = '';
+  for (var i = 0; i < metaItems.length; i++) {
+    var m = metaItems[i];
+    metaHtml += '<span class="weather-meta-item"><span class="meta-icon">' + m.icon + '</span><span class="meta-label">' + m.label + '</span><span class="meta-value">' + m.value + '</span></span>';
+  }
+  document.getElementById('weatherMeta').innerHTML = metaHtml;
+}
+
+function renderWeatherForecast(data) {
+  var el = document.getElementById('weatherForecast');
+  var arr = data.weather;
+  if (!arr || !arr.length) { el.innerHTML = ''; return; }
+
+  var today = new Date();
+  var ts = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+  var html = '';
+  for (var i = 0; i < arr.length; i++) {
+    var d = arr[i];
+    var dd = new Date(d.date + 'T00:00:00');
+    var wd = ['日','一','二','三','四','五','六'][dd.getDay()];
+    var mo = dd.getMonth() + 1;
+    var dy = dd.getDate();
+    var isT = d.date === ts;
+    var h = (d.hourly && d.hourly.length > 4) ? d.hourly[4] : (d.hourly && d.hourly[0]);
+    var code = h ? parseInt(h.weatherCode) : 113;
+    var info = getWeatherInfo(code);
+
+    html += '<div class="forecast-day' + (isT ? ' today-forecast' : '') + '">' +
+      '<div class="forecast-date">' + (isT ? '今天' : '周' + wd + ' ' + mo + '/' + dy) + '</div>' +
+      '<div class="forecast-icon">' + info.emoji + '</div>' +
+      '<div class="forecast-temp-high">' + d.maxtempC + '°<span class="forecast-temp-divider">/</span></div>' +
+      '<div class="forecast-temp-low">' + d.mintempC + '°</div>' +
+      '<div class="forecast-desc">' + info.desc + '</div>' +
+      '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function initWeather() {
+  showWeatherLoading();
+  getUserCoords().then(function(coords) {
+    return fetchWeatherData(coords).then(function(data) {
+      renderWeatherNow(data, coords.name);
+      renderWeatherForecast(data);
+      showWeatherContent();
+    });
+  }).catch(function(e) {
+    showWeatherError('天气加载失败：' + (e.message || '未知错误'));
+  });
+}
+
 // ── 黄帝纪年 & 天干地支 ──
 function getHuangdiYear(gregorianYear) {
   return gregorianYear + HUANGDI_ERA_OFFSET;
@@ -739,6 +1393,84 @@ function getGanZhiForView(year, month) {
   return getGanZhiYear(year, month, 15);
 }
 
+// ── 甲子面板 ──
+
+function getJiaziIndex(year) {
+  return ((year - 4) % 60 + 60) % 60;
+}
+
+function getJiaziName(year) {
+  return JIAZI_CYCLE[getJiaziIndex(year)];
+}
+
+function getNearestYearWithJiazi(index, fromYear) {
+  var base = fromYear - (fromYear % 60) + 4;
+  var y1 = base + index;
+  var y2 = y1 - 60;
+  var y3 = y1 + 60;
+  var best = y1;
+  if (Math.abs(y2 - fromYear) < Math.abs(best - fromYear)) best = y2;
+  if (Math.abs(y3 - fromYear) < Math.abs(best - fromYear)) best = y3;
+  return best;
+}
+
+function buildJiaziGrid(currentIndex) {
+  var html = '';
+  for (var i = 0; i < 60; i++) {
+    var cls = 'jiazi-cell';
+    if (i === currentIndex) cls += ' current';
+    var gz = JIAZI_CYCLE[i];
+    var branch = gz[1]; // 地支字符
+    var emoji = ZODIAC_EMOJI[branch] || '';
+    var zname = ZODIAC_NAMES[branch] || '';
+    html += '<div class="' + cls + '" data-jiazi="' + i + '" title="第' + (i+1) + '位 · ' + gz + ' · ' + zname + '">' +
+      '<span class="jiazi-zodiac">' + emoji + '</span>' +
+      '<span class="jiazi-text">' + gz + '</span>' +
+      '</div>';
+  }
+  document.getElementById('jiaziGrid').innerHTML = html;
+
+  // Bind click events
+  var cells = document.querySelectorAll('.jiazi-cell');
+  for (var j = 0; j < cells.length; j++) {
+    cells[j].addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-jiazi'));
+      var targetYear = getNearestYearWithJiazi(idx, state.year);
+      state.year = targetYear;
+      state.highlight = null;
+      showSearchHint('');
+      render();
+      // Keep panel open
+      document.getElementById('jiaziPanel').style.display = '';
+      document.getElementById('jiaziPos').textContent = (idx + 1);
+      document.getElementById('jiaziName').textContent = JIAZI_CYCLE[idx];
+      var eraCard = document.getElementById('eraGanZhi');
+      if (eraCard) eraCard.classList.add('open');
+    });
+  }
+}
+
+function toggleJiaziPanel() {
+  var panel = document.getElementById('jiaziPanel');
+  var card = document.getElementById('eraGanZhi');
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    // Build grid if needed
+    if (panel.style.display !== 'none') {
+      panel.style.display = 'none';
+      return;
+    }
+    var idx = getJiaziIndex(state.year);
+    document.getElementById('jiaziPos').textContent = (idx + 1);
+    document.getElementById('jiaziName').textContent = JIAZI_CYCLE[idx];
+    buildJiaziGrid(idx);
+    panel.style.display = '';
+    if (card) card.classList.add('open');
+  } else {
+    panel.style.display = 'none';
+    if (card) card.classList.remove('open');
+  }
+}
+
 function showSearchHint(msg, isError) {
   if (!msg) {
     el.searchHint.classList.remove('visible');
@@ -748,22 +1480,6 @@ function showSearchHint(msg, isError) {
   el.searchHint.textContent = msg;
   el.searchHint.style.color = isError ? '#e05a5a' : '#2d8a4e';
   el.searchHint.classList.add('visible');
-}
-
-function parseDateInput(str) {
-  str = str.trim();
-  if (!str) return null;
-
-  let m = str.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
-  if (m) return { year: +m[1], month: +m[2] - 1, day: +m[3] };
-
-  m = str.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日?$/);
-  if (m) return { year: +m[1], month: +m[2] - 1, day: +m[3] };
-
-  m = str.match(/^(\d{1,2})月(\d{1,2})日?$/);
-  if (m) return { year: state.year, month: +m[1] - 1, day: +m[2] };
-
-  return null;
 }
 
 function formatDateLabel(y, m, d) {
@@ -839,6 +1555,14 @@ function render() {
     footerText += ` · 已定位至 ${formatDateLabel(hy, hm, hd)}${ht ? '（' + ht + '）' : ''}`;
   }
   el.footer.textContent = footerText;
+
+  // Update 甲子 panel if open
+  var jzPanel = document.getElementById('jiaziPanel');
+  if (jzPanel && (jzPanel.style.display === '' || jzPanel.style.display === 'block')) {
+    var idx = getJiaziIndex(year);
+    document.getElementById('jiaziPos').textContent = (idx + 1);
+    document.getElementById('jiaziName').textContent = JIAZI_CYCLE[idx];
+  }
 }
 
 // ── actions ──
@@ -849,6 +1573,7 @@ function changeMonth(delta) {
   state.month = m;
   state.highlight = null;
   showSearchHint('');
+  updateSelectors(state.year, state.month, 1);
   render();
 }
 
@@ -858,30 +1583,65 @@ function goToToday() {
   state.month = t.getMonth();
   state.highlight = null;
   showSearchHint('');
+  updateSelectors(state.year, state.month, t.getDate());
   render();
 }
 
-function searchDate() {
-  const raw = el.searchInput.value;
-  const parsed = parseDateInput(raw);
+// ── 日期选择器 ──
 
-  if (!parsed) {
-    showSearchHint('无法识别日期格式，请使用如 2026-06-01、2026年6月1日 或 6月1日', true);
-    return;
+function populateYearSelect(selectedYear) {
+  var html = '';
+  for (var y = 1900; y <= 2100; y++) {
+    html += '<option value="' + y + '"' + (y === selectedYear ? ' selected' : '') + '>' + y + '</option>';
   }
+  el.selYear.innerHTML = html;
+}
 
-  const { year, month, day } = parsed;
-  if (!isValidDate(year, month, day)) {
-    showSearchHint(`无效日期：${year}年${month + 1}月${day}日`, true);
-    return;
+function populateMonthSelect(selectedMonth) {
+  var html = '';
+  for (var m = 1; m <= 12; m++) {
+    html += '<option value="' + (m - 1) + '"' + (m - 1 === selectedMonth ? ' selected' : '') + '>' + m + '</option>';
   }
+  el.selMonth.innerHTML = html;
+}
+
+function populateDaySelect(year, month, selectedDay) {
+  var maxDay = daysInMonth(year, month);
+  var html = '';
+  for (var d = 1; d <= maxDay; d++) {
+    html += '<option value="' + d + '"' + (d === selectedDay ? ' selected' : '') + '>' + d + '</option>';
+  }
+  el.selDay.innerHTML = html;
+}
+
+function onSelectChange() {
+  var y = parseInt(el.selYear.value);
+  var m = parseInt(el.selMonth.value);
+  var curDay = parseInt(el.selDay.value);
+  var maxDay = daysInMonth(y, m);
+  if (curDay > maxDay) curDay = maxDay;
+  populateDaySelect(y, m, curDay);
+}
+
+function jumpToDate() {
+  var year = parseInt(el.selYear.value);
+  var month = parseInt(el.selMonth.value);
+  var day = parseInt(el.selDay.value);
 
   state.year = year;
   state.month = month;
-  state.highlight = { year, month, day };
-  const term = getSolarTermsInMonth(year, month)[day];
-  showSearchHint(`已跳转至 ${formatDateLabel(year, month, day)}${term ? '（' + term + '）' : ''}`, false);
+  state.highlight = { year: year, month: month, day: day };
+  var term = getSolarTermsInMonth(year, month)[day];
+  showSearchHint('已跳转至 ' + formatDateLabel(year, month, day) + (term ? '（' + term + '）' : ''), false);
   render();
+}
+
+function updateSelectors(year, month, day) {
+  populateYearSelect(year);
+  populateMonthSelect(month);
+  populateDaySelect(year, month, day || 1);
+  el.selYear.onchange = onSelectChange;
+  el.selMonth.onchange = onSelectChange;
 }
 
 // ── init ──
@@ -889,7 +1649,9 @@ function searchDate() {
   const t = new Date();
   state.year  = t.getFullYear();
   state.month = t.getMonth();
+  updateSelectors(state.year, state.month, t.getDate());
   render();
+  initWeather();
 })();
 </script>
 
